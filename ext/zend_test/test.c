@@ -1162,6 +1162,27 @@ static ZEND_FUNCTION(zend_object_init_with_constructor)
 	ZVAL_COPY_VALUE(return_value, &obj);
 }
 
+/* Instantiate a class and run the constructor via object_init_with_constructor */
+static ZEND_FUNCTION(zend_object_init_with_constructor_array)
+{
+	zend_class_entry *ce = NULL;
+	HashTable *args;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_CLASS(ce)
+		Z_PARAM_ARRAY_HT(args)
+	ZEND_PARSE_PARAMETERS_END();
+
+	zval obj;
+	/* We don't use return_value directly to check for memory leaks of the API on failure */
+	zend_result status = object_init_with_constructor(&obj, ce, 0, NULL, args);
+	if (status == FAILURE) {
+		RETURN_THROWS();
+	}
+	ZEND_ASSERT(!EG(exception));
+	ZVAL_COPY_VALUE(return_value, &obj);
+}
+
 static ZEND_FUNCTION(zend_call_method_if_exists)
 {
 	zend_object *obj = NULL;
@@ -2310,7 +2331,7 @@ static ZEND_METHOD(_ZendTestClass, takesUnionType)
 	);
 	if (!type_matches) {
 		zend_string *ty = zend_type_to_string(execute_data->func->internal_function.arg_info->type);
-		zend_argument_type_error(1, "must be of type %s, %s given", ty->val, obj->ce->name->val);
+		zend_argument_type_error(1, "must be of type %s, %s given", ZSTR_VAL(ty), ZSTR_VAL(obj->ce->name));
 		zend_string_release(ty);
 		RETURN_THROWS();
 	}
@@ -2371,7 +2392,7 @@ static ZEND_NAMED_FUNCTION(zend_test_internal_dnf_arguments)
 	);
 	if (!type_matches) {
 		zend_string *ty = zend_type_to_string(arginfo_zend_test_internal_dnf_arguments[1].type);
-		zend_argument_type_error(1, "must be of type %s, %s given", ty->val, obj->ce->name->val);
+		zend_argument_type_error(1, "must be of type %s, %s given", ZSTR_VAL(ty), ZSTR_VAL(obj->ce->name));
 		zend_string_release(ty);
 		RETURN_THROWS();
 	}

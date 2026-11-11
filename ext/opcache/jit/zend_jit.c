@@ -592,7 +592,7 @@ static zend_class_entry* zend_get_known_class(const zend_op_array *op_array, con
 			ZEND_ASSERT((op.num & ZEND_FETCH_CLASS_MASK) == ZEND_FETCH_CLASS_PARENT);
 			ce = op_array->scope;
 			if (ce) {
-				if (ce->parent) {
+				if ((ce->ce_flags & ZEND_ACC_LINKED) && ce->parent) {
 					ce = ce->parent;
 					if (ce->type == ZEND_INTERNAL_CLASS || ce->info.user.filename != op_array->filename) {
 						ce = NULL;
@@ -2535,7 +2535,8 @@ static int zend_jit(const zend_op_array *op_array, zend_ssa *ssa, const zend_op 
 						 && (opline->op2_type == IS_CONST
 						  || (opline->op2_type == IS_UNUSED
 						   && ((opline->op2.num & ZEND_FETCH_CLASS_MASK) == ZEND_FETCH_CLASS_SELF
-						    || (opline->op2.num & ZEND_FETCH_CLASS_MASK) == ZEND_FETCH_CLASS_PARENT))))) {
+						    || (opline->op2.num & ZEND_FETCH_CLASS_MASK) == ZEND_FETCH_CLASS_PARENT
+						    || (opline->op2.num & ZEND_FETCH_CLASS_MASK) == ZEND_FETCH_CLASS_STATIC))))) {
 							break;
 						}
 						if (!zend_jit_fetch_static_prop(&ctx, opline, op_array)) {

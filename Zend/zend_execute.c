@@ -3116,7 +3116,17 @@ try_string_offset:
 					if (IS_LONG == is_numeric_string_ex(Z_STRVAL_P(dim), Z_STRLEN_P(dim), &offset,
 							NULL, /* allow errors */ true, NULL, &trailing_data)) {
 						if (UNEXPECTED(trailing_data)) {
+							/* The string may be destroyed while throwing the warning.
+							 * Temporarily increase the refcount to detect this situation. */
+							if (!(GC_FLAGS(str) & IS_STR_INTERNED)) {
+								GC_ADDREF(str);
+							}
 							zend_error(E_WARNING, "Illegal string offset \"%pS\"", Z_STR_P(dim));
+							if (!(GC_FLAGS(str) & IS_STR_INTERNED) && UNEXPECTED(GC_DELREF(str) == 0)) {
+								zend_string_efree(str);
+								ZVAL_NULL(result);
+								return;
+							}
 						}
 						goto out;
 					}
@@ -5040,7 +5050,7 @@ ZEND_API void zend_cleanup_unfinished_execution(zend_execute_data *execute_data,
 	cleanup_live_vars(execute_data, op_num, catch_op_num);
 }
 
-ZEND_API ZEND_ATTRIBUTE_DEPRECATED HashTable *zend_unfinished_execution_gc(zend_execute_data *execute_data, zend_execute_data *call, zend_get_gc_buffer *gc_buffer)
+ZEND_ATTRIBUTE_DEPRECATED ZEND_API HashTable *zend_unfinished_execution_gc(zend_execute_data *execute_data, zend_execute_data *call, zend_get_gc_buffer *gc_buffer)
 {
 	return zend_unfinished_execution_gc_ex(execute_data, call, gc_buffer, false);
 }

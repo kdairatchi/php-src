@@ -20,11 +20,15 @@ PHP                                                                        NEWS
   . Use recommended TYPE, HELP order for OpenMetrics metadata.
     (Marcel Hernandez)
 
+- GD:
+  . Fixed imagecolormatch() and imagejpeg() ValueError messages. (lacatoire)
+
 - Hash:
   . Fixed mhash_keygen_s2k() truncating a $length above INT_MAX instead of
     throwing a ValueError. (Marc Bennewitz)
 
 - Intl:
+  . Added Collator::getRules() and collator_get_rules(). (Weilin Du)
   . Added IntlRelativeDateTimeFormatter for locale-aware relative date and time
     formatting, with enums for styles, capitalization contexts, and units.
     (Weilin Du)
@@ -189,6 +193,11 @@ PHP                                                                        NEWS
     especially UTF-8. (Nicolas Grekas)
   . Improved performance of htmlspecialchars() when nothing needs encoding.
     (Nicolas Grekas)
+  . bindec(), octdec(), hexdec() and base_convert() now throw an Exception
+    when the passed string contains characters that are invalid for the
+    specified number base. (Sjoerd Langkemper)
+  . Improved performance of in_array() and array_search() in strict mode when
+    searching for a string. (Alexander Danilov)
 
 - URI:
   . Fix casing of enum cases in UriHostType and UrlHostType to match the RFC
